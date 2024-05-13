@@ -7,6 +7,7 @@ from utils import (nearest_interpolation,
                    real_esrgan,
                    real_esrgan_anime_6B,
                    esrgan,
+                   vdsr,
                    )
 
 def fn_image(x):
@@ -27,6 +28,8 @@ def fn_image(x):
         return real_esrgan_anime_6B(x)
     elif mode == "ESRGAN":
         return esrgan(x)
+    elif mode == "VDSR":
+        return vdsr(x)
     else:
         pass
 
@@ -82,14 +85,15 @@ with gr.Blocks() as demo:
          "SwinIR_x4",
          "Real_ESRGAN_x4",
          "Real_ESRGAN_x4_Anime_6B",
-         "ESRGAN"
+         "ESRGAN",
+         "VDSR",
          ],
         label="Extension Mode", value="Nearest"
     )
     # 单选框的值改变时，随之更改放大模式
     radio.change(fn_mode, inputs=radio)
     # 执行按键
-    image_button = gr.Button("submit")
+    image_button = gr.Button("submit", size="lg")
     # 执行图像放大
     image_button.click(fn=fn_image, inputs=image_input, outputs=image_output)
 

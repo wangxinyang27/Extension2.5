@@ -7,6 +7,8 @@ from SwinIR_master.main_test_swinir import swinir_main
 from Real_ESRGAN_master.inference_realesrgan import real_esrgan_main
 from Real_ESRGAN_master.inference_realesrgan_anime_6B import real_esrgan_anime_6B_main
 from ESRGAN_master.test import esrgan_main
+from Vdsr_master.main import vdsr_main
+
 
 def crop_images(img, output_dir):
     os.makedirs(output_dir, exist_ok=True)
@@ -56,13 +58,14 @@ def crop_images(img, output_dir):
     print(os.getcwd())
     for i in range(len(cropped_img)):
         output_path = os.path.join(output_dir, prefix + "{}.".format(i+1001) + suffix)
-        print(output_path)
+        # print(output_path)
         cropped_img[i].save(output_path)
         print(f"Image {filename} cropped and saved to {output_path}")
 
     return (img.height, img.width, height_count, width_count), filename
 
-def stitch_images(input_dir, batch_size):
+
+def stitch_images(input_dir, batch_size, enlarged=False):
     # 创建输出目录
     h, w, hc, wc = batch_size
 
@@ -79,7 +82,10 @@ def stitch_images(input_dir, batch_size):
             img = Image.open(img_path)
             images.append(img)
 
-    total_width, total_height = w * 4, h * 4
+    if enlarged:
+        total_width, total_height = w, h
+    else:
+        total_width, total_height = w * 4, h * 4
 
     # 创建一个新的空白图像
     stitched_img = Image.new("RGBA", (total_width, total_height))
@@ -93,6 +99,7 @@ def stitch_images(input_dir, batch_size):
         stitched_img.paste(img, (x_offset, y_offset))
         print("当前左上角:{},{},  子块大小:{},{}".format(x_offset, y_offset, img.height, img.width))
         y_offset += img.height
+        print(x_offset, y_offset)
         if y_offset >= total_height:
             y_offset = 0
             x_offset += img.width
@@ -156,8 +163,21 @@ def real_esrgan_anime_6B(image):
 
 def esrgan(image):
     batch_size, _ = crop_images(image, "temp")
+
     esrgan_main()
     out = stitch_images("temp1", batch_size)
+    shutil.rmtree('temp')
+    shutil.rmtree('temp1')
+    return out
+
+def vdsr(image):
+    # 因为vdsr的very deep，所以还是会爆显存
+    w, h = image.size
+    image = image.resize((w * 4, h * 4), Image.BICUBIC)   # 先放大后裁剪
+    batch_size, _ = crop_images(image, "temp")
+    # print(batch_size)
+    vdsr_main()
+    out = stitch_images("temp1", batch_size, enlarged=True)
     shutil.rmtree('temp')
     shutil.rmtree('temp1')
     return out
