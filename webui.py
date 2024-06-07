@@ -8,6 +8,7 @@ from utils import (nearest_interpolation,
                    real_esrgan_anime_6B,
                    esrgan,
                    vdsr,
+                   edsr,
                    )
 
 def fn_image(x):
@@ -30,6 +31,8 @@ def fn_image(x):
         return esrgan(x)
     elif mode == "VDSR":
         return vdsr(x)
+    # elif mode == "EDSR":
+    #     return edsr(x)
     else:
         pass
 
